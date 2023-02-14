@@ -6,7 +6,7 @@ all: nyush
 
 nyush: nyush.o
 
-nyush.o: nyush.c 
+nyush.o: nyush.c nyush.h
 
 .PHONY: clean
 clean:
