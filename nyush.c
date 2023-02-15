@@ -12,14 +12,14 @@ int main()
 {
 	size_t inputSize = 32;
 	char* input = (char *)malloc(inputSize * sizeof(char));
-	bool inputError = false;
+	enum inputStatus status;
 
 	do 
 	{
 		printPrompt();
-		getUserInput(input, inputSize, &inputError);	
+		status = getUserInput(input, inputSize);
 	}
-	while (strcmp(input, "exit") != 0 && !inputError);
+	while (status != INPUT_EXIT && status != INPUT_EOF);
 
 	free(input);
 }
@@ -37,18 +37,39 @@ void printPrompt()
 }
 
 // https://c-for-dummies.com/blog/?p=1112
-void getUserInput(char* buffer, size_t bufsize, bool* inputError)
+enum inputStatus getUserInput(char* buffer, size_t bufsize)
 {
-	if (buffer == NULL)
-	{
-		perror("Unable to allocate buffer");
-		exit(1);
-	}
-
 	if (getline(&buffer, &bufsize, stdin) == -1)
 	{
-		*inputError = true;
+		if (feof(stdin))
+		{
+			// the user has pressed Ctrl+D
+			return INPUT_EOF; 
+		} 
+		else
+		{
+			perror("Error reading input with getLine()");
+			return INPUT_ERROR;
+		} 
 	}
 
+	//change \n at the end of the buffer to \0 so it's a null terminated string
 	buffer[strcspn(buffer, "\n")] = '\0';
+
+	if (strcmp(buffer, "exit") == 0)
+	{
+		return INPUT_EXIT;
+	}
+
+	return INPUT_OK;
+}
+
+bool isInvalid(char* input)
+{
+	//for now the only command I've implemented is exit, I'll change this later
+	if (strcmp(input, "exit") == 0)
+	{
+		return false;		
+	}
+	return true;
 }

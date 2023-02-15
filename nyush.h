@@ -1,2 +1,4 @@
 void printPrompt();
-void getUserInput(char* buffer, size_t bufsize, bool* inputError);
+enum inputStatus {INPUT_OK, INPUT_EOF, INPUT_EXIT, INPUT_ERROR};
+enum inputStatus getUserInput(char* buffer, size_t bufsize);
+bool isInvalid(char* input);
