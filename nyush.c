@@ -1,3 +1,5 @@
+//nyuc  -- for valgrind: valgrind --leak-check=full --track-origins=yes ./nyush
+
 #include "stdio.h"
 #include "stdlib.h"
 #include "stdbool.h"
@@ -8,23 +10,18 @@
 
 int main()
 {
-	// size_t inputSize = 32;
-	// char* input = (char *)malloc(inputSize * sizeof(char));
+	size_t inputSize = 32;
+	char* input = (char *)malloc(inputSize * sizeof(char));
+	bool inputError = false;
 
-	// while (true)
-	// {
-	// 	printPrompt();
-	// 	getUserInput(input, inputSize);	
+	do 
+	{
+		printPrompt();
+		getUserInput(input, inputSize, &inputError);	
+	}
+	while (strcmp(input, "exit") != 0 && !inputError);
 
-	// 	if (strcmp(input, "exit") == 0)
-	// 	{
-	// 		break;
-	// 	}
-	// }
-
-	// free(input);
-
-	printPrompt();
+	free(input);
 }
 
 void printPrompt()
@@ -40,7 +37,7 @@ void printPrompt()
 }
 
 // https://c-for-dummies.com/blog/?p=1112
-void getUserInput(char* buffer, size_t bufsize)
+void getUserInput(char* buffer, size_t bufsize, bool* inputError)
 {
 	if (buffer == NULL)
 	{
@@ -48,6 +45,10 @@ void getUserInput(char* buffer, size_t bufsize)
 		exit(1);
 	}
 
-	getline(&buffer, &bufsize, stdin);
+	if (getline(&buffer, &bufsize, stdin) == -1)
+	{
+		*inputError = true;
+	}
+
 	buffer[strcspn(buffer, "\n")] = '\0';
 }
