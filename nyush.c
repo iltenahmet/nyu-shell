@@ -11,18 +11,35 @@
 
 int main()
 {
-	size_t inputSize = 32;
-	char* input = (char *)malloc(inputSize * sizeof(char));
-	enum inputStatus status;
-
-	do 
+	while(1)
 	{
-		printPrompt();
-		status = getUserInput(input, inputSize);
-	}
-	while (status != INPUT_EXIT && status != INPUT_EOF);
+		size_t inputSize = 32;
+		char* input = (char *)malloc(inputSize * sizeof(char));
 
-	free(input);
+		printPrompt();
+
+		if (getUserInput(input, inputSize) != EXIT_SUCCESS)
+		{
+			free(input);
+			exit(0);
+		}	
+
+		char* builtInCommand = getBuiltInCommand(input);
+		if (builtInCommand)
+		{
+			printf("%s", builtInCommand);
+			if (strcmp(builtInCommand, "exit") == 0)
+			{
+				free(input);
+				exit(0);
+			}
+			
+		} 
+		else 
+		{
+			printf("No, %s", builtInCommand);
+		}
+	}	
 }
 
 void printPrompt()
@@ -33,44 +50,48 @@ void printPrompt()
 		perror("getcwd() error");
 	}
 
-	dprintf("[nyush %s]$ ", basename(cwd));
+	printf("[nyush %s]$ ", basename(cwd));
 	fflush(stdout);
 }
 
 // https://c-for-dummies.com/blog/?p=1112
-enum inputStatus getUserInput(char* buffer, size_t bufsize)
+int getUserInput(char* buffer, size_t bufsize)
 {
 	if (getline(&buffer, &bufsize, stdin) == -1)
 	{
 		if (feof(stdin))
 		{
 			// the user has pressed Ctrl+D
-			return INPUT_EOF; 
+			return EXIT_FAILURE; 
 		} 
 		else
 		{
 			perror("Error reading input with getLine()");
-			return INPUT_ERROR;
+			return EXIT_FAILURE;
 		} 
 	}
 
 	//change \n at the end of the buffer to \0 so it's a null terminated string
 	buffer[strcspn(buffer, "\n")] = '\0';
 
-	if (strcmp(buffer, "exit") == 0)
-	{
-		return INPUT_EXIT;
-	}
-
-	return INPUT_OK;
+	return EXIT_SUCCESS;
 }
 
-bool isInvalid(char* input)
+char* getBuiltInCommand(char* command)
 {
-	//for now the only command I've implemented is exit, I'll change this later
-	if (strcmp(input, "exit") == 0)
-	{
-		return false;		
-	}
-	return true;
+	char* builtInCommands[] = {"cd", "jobs", "fg", "exit"};
+	int count = sizeof(builtInCommands) / sizeof(char*);
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(command, builtInCommands[i]) == 0) {
+            return builtInCommands[i];
+        }
+    }
+
+    return NULL;
+}
+
+void exitProgram()
+{
+
 }
