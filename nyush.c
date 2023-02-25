@@ -1,4 +1,5 @@
 //nyuc  -- for valgrind: valgrind --leak-check=full --track-origins=yes ./nyush
+//docker command for windows: docker run -i --name cs202 --privileged --rm -t -v C:\Users\ahmet\cs202\labs:/cs202 -w /cs202 ytang/os bash
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -32,7 +33,7 @@ void printPrompt()
 		perror("getcwd() error");
 	}
 
-	printf("[nyush %s]$ ", basename(cwd));
+	dprintf("[nyush %s]$ ", basename(cwd));
 	fflush(stdout);
 }
 
