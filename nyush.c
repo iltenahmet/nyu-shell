@@ -13,21 +13,33 @@ int main()
 {
 	while(1)
 	{
-		size_t inputSize = 32;
+		size_t inputSize = 100;
 		char* input = (char *)malloc(inputSize * sizeof(char));
 
 		printPrompt();
-
 		if (getUserInput(input, inputSize) != EXIT_SUCCESS)
 		{
 			free(input);
 			exit(0);
 		}	
 
+		int inputArraySize = 7;
+		char** inputArray = malloc(inputArraySize * sizeof(char *));
+		splitStringBySpace(input, &inputArray, &inputArraySize);
+
+		for (int i = 0; i < inputArraySize; i++)
+		{
+			if (inputArray[i] != NULL)
+			{
+			printf("[%s]", inputArray[i]);
+			fflush(stdout);
+			}
+	}
+
 		char* builtInCommand = getBuiltInCommand(input);
 		if (builtInCommand)
 		{
-			printf("%s", builtInCommand);
+			printf("Built in: %s", builtInCommand);
 			if (strcmp(builtInCommand, "exit") == 0)
 			{
 				free(input);
@@ -37,7 +49,7 @@ int main()
 		} 
 		else 
 		{
-			printf("No, %s", builtInCommand);
+			printf("Not built-in");
 		}
 	}	
 }
@@ -77,6 +89,27 @@ int getUserInput(char* buffer, size_t bufsize)
 	return EXIT_SUCCESS;
 }
 
+void splitStringBySpace(char *inputString, char ***outputArrayPtr,  int *arraySize) 
+{
+	char **outputArray = *outputArrayPtr;
+	int tokenCount = 0;
+	char* token = strtok(inputString, " ");
+
+    while (token != NULL) 
+	{
+		if (tokenCount == *arraySize) 
+		{
+			*arraySize *= 2;
+			outputArray = realloc(outputArray, sizeof(char *) * *arraySize);
+			*outputArrayPtr = outputArray;
+		}
+
+		outputArray[tokenCount] = token;
+		token = strtok(NULL, " ");
+		tokenCount++;
+    }
+}
+
 char* getBuiltInCommand(char* command)
 {
 	char* builtInCommands[] = {"cd", "jobs", "fg", "exit"};
@@ -89,9 +122,4 @@ char* getBuiltInCommand(char* command)
     }
 
     return NULL;
-}
-
-void exitProgram()
-{
-
 }
