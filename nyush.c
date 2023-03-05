@@ -1,5 +1,7 @@
 // nyuc  -- for valgrind: valgrind --leak-check=full --track-origins=yes ./nyush
 // docker command for windows: docker run -i --name cs202 --privileged --rm -t -v C:\Users\ahmet\cs202\labs:/cs202 -w /cs202 ytang/os bash
+// docker command for mac: docker run -i --name cs202 --privileged --rm -t -v /Users/ahmetilten/cs202/labs:/cs202 -w /cs202 ytang/os bash
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,8 +10,8 @@
 #include <libgen.h>
 #include <stdarg.h>
 #include <sys/wait.h>
-#include "Nyush.h"
-#include "BuiltInCommands.h"
+#include "nyush.h"
+#include "builtInCommands.h"
 
 int main()
 {
@@ -43,34 +45,25 @@ int main()
 		else // not a built-in command
 		{
 			char *executablePath = getExecutablePath(inputArray[0]);
-			// printf("Executable path: %s ", executablePath);
-			// char *args[2];
-			// args[0] = executablePath;
-			// execv(args[0], args);
+			char *programName = getProgramName(inputArray[0]);
+			pid_t pid = fork();
 
-			char *args[] = {"ls", NULL};
-			execv("/bin/ls", args);
+			if (pid < 0)
+			{
+				// fork failed (this shouldn't happen)
+			}
+			else if (pid == 0) // child process
+			{
+				char *args[] = {programName, NULL};
+				execv(executablePath, args);
+			}
+			else // parent
+			{
+				int status;
+				waitpid(-1, &status, 0);
+			}
 
-			// pid_t pid = fork();
-
-			// if (pid < 0)
-			// {
-			// 	// fork failed (this shouldn't happen)
-			// }
-			// else if (pid == 0)
-			// {
-			// 	// child (new process)
-			// 	// execv(executablePath, args);
-			// 	// execl("/bin/ls", "ls", NULL);
-			// 	// or another variant
-			// 	// exec failed
-			// }
-			// else
-			// {
-			// 	// parent
-			// 	// waitpid(-1, ...);
-			// }
-
+			free(programName);
 			free(executablePath);
 		}
 	}
