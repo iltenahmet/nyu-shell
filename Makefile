@@ -2,15 +2,15 @@ CC=gcc
 CFLAGS=-g -pedantic -std=gnu17 -Wall -Werror -Wextra
 
 .PHONY: all
-all: Nyush
+all: nyush
 
-Nyush: Nyush.o BuiltInCommands.o
+nyush: nyush.o builtInCommands.o
 
-Nyush.o: Nyush.c nyush.h BuiltInCommands.h
+nyush.o: nyush.c nyush.h builtInCommands.h
 
-BuiltInCommands.o: BuiltInCommands.c BuiltInCommands.h
+builtInCommands.o: builtInCommands.c builtInCommands.h
 
 .PHONY: clean
 clean:
-	rm -f *.o Nyush
+	rm -f *.o nyush
 

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include "BuiltInCommands.h"
+#include "builtInCommands.h"
 
 char *builtInCommands[] = {"cd", "jobs", "fg", "exit"};
 

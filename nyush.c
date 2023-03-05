@@ -43,30 +43,33 @@ int main()
 		else // not a built-in command
 		{
 			char *executablePath = getExecutablePath(inputArray[0]);
-			printf("Executable path: %s ", executablePath);
-			//char* args[2];
-			//args[0] = executablePath;
-			//execv(args[0], args);
+			// printf("Executable path: %s ", executablePath);
+			// char *args[2];
+			// args[0] = executablePath;
+			// execv(args[0], args);
 
-			pid_t pid = fork();
+			char *args[] = {"ls", NULL};
+			execv("/bin/ls", args);
 
-			if (pid < 0)
-			{
-				// fork failed (this shouldn't happen)
-			}
-			else if (pid == 0)
-			{
-				// child (new process)
-				//execv(executablePath, args);
-				execl("/bin/ls", "ls", "-l", NULL);
-				// or another variant
-				// exec failed
-			}
-			else
-			{
-				// parent
-				// waitpid(-1, ...);
-			}
+			// pid_t pid = fork();
+
+			// if (pid < 0)
+			// {
+			// 	// fork failed (this shouldn't happen)
+			// }
+			// else if (pid == 0)
+			// {
+			// 	// child (new process)
+			// 	// execv(executablePath, args);
+			// 	// execl("/bin/ls", "ls", NULL);
+			// 	// or another variant
+			// 	// exec failed
+			// }
+			// else
+			// {
+			// 	// parent
+			// 	// waitpid(-1, ...);
+			// }
 
 			free(executablePath);
 		}
