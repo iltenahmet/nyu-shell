@@ -1,13 +1,15 @@
 // nyuc  -- for valgrind: valgrind --leak-check=full --track-origins=yes ./nyush
 // docker command for windows: docker run -i --name cs202 --privileged --rm -t -v C:\Users\ahmet\cs202\labs:/cs202 -w /cs202 ytang/os bash
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "stdbool.h"
-#include "string.h"
-#include "unistd.h"
-#include "libgen.h"
-#include "nyush.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <libgen.h>
+#include <stdarg.h>
+#include <sys/wait.h>
+#include "Nyush.h"
+#include "BuiltInCommands.h"
 
 int main()
 {
@@ -24,31 +26,51 @@ int main()
 		printPrompt();
 		if (getUserInput(input, inputSize) != EXIT_SUCCESS)
 		{
-			free(input);
-			free(inputArray);	
-			exit(0);
+			freeArgumentsAndExit(2, input, inputArray);
 		}
 
 		splitStringBySpace(input, &inputArray, &inputArraySize);
 
 		char *builtInCommand = getBuiltInCommand(inputArray[0]);
+
 		if (builtInCommand)
 		{
-			printf("Built in: %s", builtInCommand);
-			if (strcmp(builtInCommand, "exit") == 0)
+			if (executeBuiltInCommand(inputArray) == EXIT_FAILURE)
 			{
-				free(input);
-				free(inputArray);	
-				exit(0);
+				freeArgumentsAndExit(2, input, inputArray);
 			}
 		}
-		else
+		else // not a built-in command
 		{
-			printf("Not built-in");
+			char *executablePath = getExecutablePath(inputArray[0]);
+			printf("Executable path: %s ", executablePath);
+			//char* args[2];
+			//args[0] = executablePath;
+			//execv(args[0], args);
+
+			pid_t pid = fork();
+
+			if (pid < 0)
+			{
+				// fork failed (this shouldn't happen)
+			}
+			else if (pid == 0)
+			{
+				// child (new process)
+				//execv(executablePath, args);
+				execl("/bin/ls", "ls", "-l", NULL);
+				// or another variant
+				// exec failed
+			}
+			else
+			{
+				// parent
+				// waitpid(-1, ...);
+			}
+
+			free(executablePath);
 		}
 	}
-
-
 }
 
 void printPrompt()
@@ -107,18 +129,71 @@ void splitStringBySpace(char *inputString, char ***outputArrayPtr, int *arraySiz
 	}
 }
 
-char *getBuiltInCommand(char *command)
+void freeArgumentsAndExit(int argumentCount, ...)
 {
-	char *builtInCommands[] = {"cd", "jobs", "fg", "exit"};
-	int count = sizeof(builtInCommands) / sizeof(char *);
+	va_list args;
+	va_start(args, argumentCount);
 
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < argumentCount; i++)
 	{
-		if (strcmp(command, builtInCommands[i]) == 0)
-		{
-			return builtInCommands[i];
-		}
+		void *ptr = va_arg(args, void *);
+		free(ptr);
 	}
 
-	return NULL;
+	va_end(args);
+	exit(0);
+}
+
+char *getExecutablePath(char *command)
+{
+	if (strchr(command, '/') == 0) // Just the base name
+	{
+		char *path = "/bin";
+
+		char *result = (char *)malloc(strlen(path) + strlen(command) + 2);
+		sprintf(result, "%s/%s", path, command);
+
+		return result;
+	}
+
+	if (command[0] == '/') // abosolute path
+	{
+		char *result = (char *)malloc(strlen(command) + 1); // return a new string to avoid double free() errors
+		strcpy(result, command);
+
+		return result;
+	}
+
+	// relative path
+	char cwd[256];
+	if (getcwd(cwd, sizeof(cwd)) == NULL)
+	{
+		perror("getcwd() error");
+	}
+
+	char *result = (char *)malloc(strlen(cwd) + strlen(command) + 2);
+	sprintf(result, "%s/%s", cwd, command);
+
+	return result;
+}
+
+char *getProgramName(char *command)
+{
+	char *delimiter = strrchr(command, '/');
+
+	if (delimiter == NULL) // only base name
+	{
+		char *result = (char *)malloc(strlen(command) + 1); // return a new string to avoid double free() errors
+		strcpy(result, command);
+
+		return result;
+	}
+
+	int length = delimiter - command;
+	char *result = malloc(length + 1);
+
+	strncpy(result, command, length);
+	result[length] = '\0';
+
+	return result;
 }
