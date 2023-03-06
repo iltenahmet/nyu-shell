@@ -1,8 +1,4 @@
-// nyuc  -- for valgrind: valgrind --leak-check=full --track-origins=yes ./nyush
-// docker command for windows: docker run -i --name cs202 --privileged --rm -t -v C:\Users\ahmet\cs202\labs:/cs202 -w /cs202 ytang/os bash
-// docker command for mac: docker run -i --name cs202 --privileged --rm -t -v /Users/ahmetilten/cs202/labs:/cs202 -w /cs202 ytang/os bash
-// zip: zip nyush.zip Makefile *.h *.c
-
+//nyush.c
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,12 +38,15 @@ int main()
 			{
 				freeArgumentsAndExit(2, input, inputArray);
 			}
+
+			continue;
 		}
 
-		// not a built-in command
+		// command is not a built-in command
 		char *executablePath = getExecutablePath(inputArray[0]);
 		char *programName = getProgramName(inputArray[0]);
 
+		// create args
 		char *args[inputArraySize+1];
 		args[0] = programName;
 		for (int i = 1; i < inputArraySize; i++)
@@ -57,10 +56,9 @@ int main()
 		args[inputArraySize] = NULL;
 
 		pid_t pid = fork();
-
-		if (pid < 0)
+		if (pid < 0) //fork failed
 		{
-			// fork failed (this shouldn't happen)
+			fprintf(stderr, "Fork failed");
 		}
 		else if (pid == 0) // child process
 		{
@@ -70,7 +68,7 @@ int main()
 			fprintf(stderr, "Error: invalid program");
 			exit(0);
 		}
-		else // parent
+		else // parent process
 		{
 			int status;
 			waitpid(-1, &status, 0);
@@ -78,7 +76,6 @@ int main()
 
 		free(programName);
 		free(executablePath);
-		
 	}
 }
 
@@ -100,16 +97,13 @@ int getUserInput(char *buffer, size_t bufsize)
 {
 	if (getline(&buffer, &bufsize, stdin) == -1)
 	{
-		if (feof(stdin))
-		{
-			// the user has pressed Ctrl+D
-			return EXIT_FAILURE;
-		}
-		else
+		if (!feof(stdin))
 		{
 			perror("Error reading input with getLine()");
-			return EXIT_FAILURE;
 		}
+		
+		// the user has pressed Ctrl+D
+		return EXIT_FAILURE;
 	}
 
 	// change \n at the end of the buffer to \0 so it's a null terminated string

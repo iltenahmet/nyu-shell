@@ -33,7 +33,8 @@ int executeBuiltInCommand(char **inputArray)
         }
         return EXIT_SUCCESS;
     }
-    else if (strcmp(command, "exit") == 0)
+
+    if (strcmp(command, "exit") == 0)
     {
         return EXIT_FAILURE;
     }
