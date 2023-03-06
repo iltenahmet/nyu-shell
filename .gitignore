@@ -56,3 +56,4 @@ dkms.conf
 
 nyush-autograder
 .vs
+.DS_Store
