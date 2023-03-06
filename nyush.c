@@ -1,6 +1,7 @@
 // nyuc  -- for valgrind: valgrind --leak-check=full --track-origins=yes ./nyush
 // docker command for windows: docker run -i --name cs202 --privileged --rm -t -v C:\Users\ahmet\cs202\labs:/cs202 -w /cs202 ytang/os bash
 // docker command for mac: docker run -i --name cs202 --privileged --rm -t -v /Users/ahmetilten/cs202/labs:/cs202 -w /cs202 ytang/os bash
+// zip: zip nyush.zip Makefile *.h *.c
 
 
 #include <stdio.h>
@@ -19,7 +20,7 @@ int main()
 	size_t inputSize = 100;
 	char *input = (char *)malloc(inputSize * sizeof(char));
 
-	int inputArraySize = 7;
+	int inputArraySize = 1; //We dynamically increase array size as we add elements
 	char **inputArray = malloc(inputArraySize * sizeof(char *));
 
 	while (1)
@@ -42,35 +43,48 @@ int main()
 				freeArgumentsAndExit(2, input, inputArray);
 			}
 		}
-		else // not a built-in command
+
+		// not a built-in command
+		char *executablePath = getExecutablePath(inputArray[0]);
+		char *programName = getProgramName(inputArray[0]);
+
+		char *args[inputArraySize+1];
+		args[0] = programName;
+		for (int i = 1; i < inputArraySize; i++)
 		{
-			char *executablePath = getExecutablePath(inputArray[0]);
-			char *programName = getProgramName(inputArray[0]);
-			pid_t pid = fork();
-
-			if (pid < 0)
-			{
-				// fork failed (this shouldn't happen)
-			}
-			else if (pid == 0) // child process
-			{
-				char *args[] = {programName, NULL};
-				execv(executablePath, args);
-			}
-			else // parent
-			{
-				int status;
-				waitpid(-1, &status, 0);
-			}
-
-			free(programName);
-			free(executablePath);
+			args[i] = inputArray[i];
 		}
+		args[inputArraySize] = NULL;
+
+		pid_t pid = fork();
+
+		if (pid < 0)
+		{
+			// fork failed (this shouldn't happen)
+		}
+		else if (pid == 0) // child process
+		{
+			execv(executablePath, args);
+
+			//execv error
+			fprintf(stderr, "Error: invalid program");
+			exit(0);
+		}
+		else // parent
+		{
+			int status;
+			waitpid(-1, &status, 0);
+		}
+
+		free(programName);
+		free(executablePath);
+		
 	}
 }
 
 void printPrompt()
 {
+	fflush(stdout);
 	char cwd[256];
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 	{
@@ -114,7 +128,7 @@ void splitStringBySpace(char *inputString, char ***outputArrayPtr, int *arraySiz
 	{
 		if (tokenCount == *arraySize)
 		{
-			*arraySize *= 2;
+			(*arraySize)++;
 			outputArray = realloc(outputArray, sizeof(char *) * *arraySize);
 			*outputArrayPtr = outputArray;
 		}
