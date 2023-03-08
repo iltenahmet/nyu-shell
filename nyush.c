@@ -1,4 +1,4 @@
-//nyush.c
+// nyush.c
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,16 +7,21 @@
 #include <libgen.h>
 #include <stdarg.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include "nyush.h"
 #include "builtInCommands.h"
 
 int main()
 {
+	//ignore signals
+	signal(SIGINT, SIG_IGN); 
+	signal(SIGQUIT, SIG_IGN);
+	signal(SIGTSTP, SIG_IGN);
 
 	size_t inputSize = 100;
 	char *input = (char *)malloc(inputSize * sizeof(char));
 
-	int inputArraySize = 1; //We dynamically increase array size as we add elements
+	int inputArraySize = 1; // We dynamically increase array size as we add elements
 	char **inputArray = malloc(inputArraySize * sizeof(char *));
 
 	while (1)
@@ -47,7 +52,7 @@ int main()
 		char *programName = getProgramName(inputArray[0]);
 
 		// create args
-		char *args[inputArraySize+1];
+		char *args[inputArraySize + 1];
 		args[0] = programName;
 		for (int i = 1; i < inputArraySize; i++)
 		{
@@ -56,7 +61,7 @@ int main()
 		args[inputArraySize] = NULL;
 
 		pid_t pid = fork();
-		if (pid < 0) //fork failed
+		if (pid < 0) // fork failed
 		{
 			fprintf(stderr, "Fork failed");
 		}
@@ -64,7 +69,7 @@ int main()
 		{
 			execv(executablePath, args);
 
-			//execv error
+			// execv error
 			fprintf(stderr, "Error: invalid program");
 			exit(0);
 		}
@@ -101,7 +106,7 @@ int getUserInput(char *buffer, size_t bufsize)
 		{
 			perror("Error reading input with getLine()");
 		}
-		
+
 		// the user has pressed Ctrl+D
 		return EXIT_FAILURE;
 	}
@@ -201,3 +206,6 @@ char *getProgramName(char *command)
 
 	return result;
 }
+
+
+
