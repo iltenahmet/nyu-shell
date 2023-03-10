@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include "nyush.h"
 #include "builtInCommands.h"
 
@@ -69,8 +70,11 @@ int main()
 			// output redirection
 			char *file;
 			for (int i = 0; i < inputArraySize; i++) 
-			{
-				if (strcmp(inputArray[i], ">") == 0)  // check for ">"
+			{ 
+				// check for ">" or ">>"
+				bool create = strcmp(inputArray[i], ">") == 0 ? true : false;
+				bool append = strcmp(inputArray[i], ">>") == 0 ? true : false;
+				if (create || append) 
 				{
 					file = inputArray[i + 1];
 					if (file == NULL)
@@ -79,9 +83,18 @@ int main()
 					}
 
 					// modify args to only include part before >
+					int fd;
 					args[i] = NULL;
+					if (create) 
+					{
+						fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+					} 
+					else //append
+					{
+						fd = open(file, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR);
+					}
 
-					int fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+					
 					dup2(fd, 1); // duplicate the file descriptor
 					close(fd);	 // close the unused file descriptor
 
