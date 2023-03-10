@@ -67,15 +67,18 @@ int main()
 		}
 		else if (pid == 0) // child process
 		{
-			// output redirection
 			char *file;
+			int operatorCount;
 			for (int i = 0; i < inputArraySize; i++) 
 			{ 
 				// check for ">" or ">>"
 				bool create = strcmp(inputArray[i], ">") == 0 ? true : false;
 				bool append = strcmp(inputArray[i], ">>") == 0 ? true : false;
-				if (create || append) 
+				bool inputRedirect = strcmp(inputArray[i], "<") == 0 ? true : false;
+
+				if (create || append || inputRedirect) //handle i/o redirection
 				{
+					operatorCount++;
 					file = inputArray[i + 1];
 					if (file == NULL)
 					{
@@ -83,8 +86,25 @@ int main()
 					}
 
 					// modify args to only include part before >
-					int fd;
 					args[i] = NULL;
+					
+					int fd;
+					if (inputRedirect)
+					{
+						int fd = open(file, O_RDONLY);
+						if (fd == -1)
+						{
+							fprintf(stderr, "Error: invalid file");
+							continue;
+						}
+
+						dup2(fd, 0); //duplicate the file descriptor to standard input
+						close(fd);
+						
+						continue;
+					}
+
+					// output redirect
 					if (create) 
 					{
 						fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -92,15 +112,21 @@ int main()
 					else //append
 					{
 						fd = open(file, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR);
+						if (fd == -1) 
+						{
+							fprintf(stderr, "Error: invalid file");
+							continue;
+						}
 					}
 
-					
-					dup2(fd, 1); // duplicate the file descriptor
-					close(fd);	 // close the unused file descriptor
+					dup2(fd, 1); // duplicate the file descriptor to standard output
+					close(fd);
 
 					// After this point any calls to stdout will write to "file";
-					break;
+					continue;
 				}
+
+
 			}
 
 			execv(executablePath, args);

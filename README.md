@@ -10,7 +10,7 @@ docker run -i --name cs202 --privileged --rm -t -v C:\Users\ailte\OS\labs:/cs202
 
 To run a Docker container on Mac:
 
-docker run -i --name cs202 --privileged --rm -t -v /Users/ahmetilten/cs202/labs:/cs202 -w /cs202 ytang/os bash
+docker run -i --name cs202 --privileged --rm -t -v /Users/ahmetilten/OS/labs:/cs202 -w /cs202 ytang/os bash
 
 To zip specific files:
 
