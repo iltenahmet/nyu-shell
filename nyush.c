@@ -71,7 +71,7 @@ int main()
 			int operatorCount;
 			for (int i = 0; i < inputArraySize; i++) 
 			{ 
-				// check for ">" or ">>"
+				// check for ">" or ">>" or "<"
 				bool create = strcmp(inputArray[i], ">") == 0 ? true : false;
 				bool append = strcmp(inputArray[i], ">>") == 0 ? true : false;
 				bool inputRedirect = strcmp(inputArray[i], "<") == 0 ? true : false;
@@ -82,10 +82,11 @@ int main()
 					file = inputArray[i + 1];
 					if (file == NULL)
 					{
-						fprintf(stderr, "Error: invalid command");
+						fprintf(stderr, "Error: invalid command\n");
+						exit(-1);
 					}
 
-					// modify args to only include part before >
+					// modify args to only include part before ">" ">>" or "<"
 					args[i] = NULL;
 					
 					int fd;
@@ -94,8 +95,8 @@ int main()
 						int fd = open(file, O_RDONLY);
 						if (fd == -1)
 						{
-							fprintf(stderr, "Error: invalid file");
-							continue;
+							fprintf(stderr, "Error: invalid file\n");
+							exit(-1);	
 						}
 
 						dup2(fd, 0); //duplicate the file descriptor to standard input
@@ -114,8 +115,8 @@ int main()
 						fd = open(file, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR);
 						if (fd == -1) 
 						{
-							fprintf(stderr, "Error: invalid file");
-							continue;
+							fprintf(stderr, "Error: invalid file\n");
+							exit(-1);
 						}
 					}
 
@@ -134,7 +135,7 @@ int main()
 			// TO DO: check if we have access to file with access()
 
 			// execv error
-			fprintf(stderr, "Error: invalid program");
+			fprintf(stderr, "Error: invalid program\n");
 			exit(-1);
 		}
 		else // parent process
