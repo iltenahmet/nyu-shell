@@ -1,5 +1,17 @@
 #nyush
-for valgrind: valgrind --leak-check=full --track-origins=yes ./nyush
-docker command for windows: docker run -i --name cs202 --privileged --rm -t -v C:\Users\ailte\OS\labs:/cs202 -w /cs202 ytang/os bash      
-docker command for mac: docker run -i --name cs202 --privileged --rm -t -v /Users/ahmetilten/cs202/labs:/cs202 -w /cs202 ytang/os bash
-zip: zip nyush.zip Makefile *.h *.c
+
+To use valgrind to check for memory leaks and track origins:
+
+valgrind --leak-check=full --track-origins=yes ./nyush
+
+To run a Docker container on Windows:
+
+docker run -i --name cs202 --privileged --rm -t -v C:\Users\ailte\OS\labs:/cs202 -w /cs202 ytang/os bash
+
+To run a Docker container on Mac:
+
+docker run -i --name cs202 --privileged --rm -t -v /Users/ahmetilten/cs202/labs:/cs202 -w /cs202 ytang/os bash
+
+To zip specific files:
+
+zip nyush.zip Makefile *.h *.c
