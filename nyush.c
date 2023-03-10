@@ -8,13 +8,14 @@
 #include <stdarg.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <fcntl.h>
 #include "nyush.h"
 #include "builtInCommands.h"
 
 int main()
 {
-	//ignore signals
-	signal(SIGINT, SIG_IGN); 
+	// ignore signals
+	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
 
@@ -48,11 +49,10 @@ int main()
 
 		// command is not a built-in command
 		char *executablePath = getExecutablePath(inputArray[0]);
-		char *programName = getProgramName(inputArray[0]);
 
 		// create args
-		char *args[inputArraySize + 1];
-		args[0] = programName;
+		char **args = malloc((inputArraySize + 1) * sizeof(char *));
+		args[0] = inputArray[0];
 		for (int i = 1; i < inputArraySize; i++)
 		{
 			args[i] = inputArray[i];
@@ -66,11 +66,37 @@ int main()
 		}
 		else if (pid == 0) // child process
 		{
+			// output redirection
+			char *file;
+			for (int i = 0; i < inputArraySize; i++) 
+			{
+				if (strcmp(inputArray[i], ">") == 0)  // check for ">"
+				{
+					file = inputArray[i + 1];
+					if (file == NULL)
+					{
+						fprintf(stderr, "Error: invalid command");
+					}
+
+					// modify args to only include part before >
+					args[i] = NULL;
+
+					int fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+					dup2(fd, 1); // duplicate the file descriptor
+					close(fd);	 // close the unused file descriptor
+
+					// After this point any calls to stdout will write to "file";
+					break;
+				}
+			}
+
 			execv(executablePath, args);
+
+			// TO DO: check if we have access to file with access()
 
 			// execv error
 			fprintf(stderr, "Error: invalid program");
-			exit(0);
+			exit(-1);
 		}
 		else // parent process
 		{
@@ -78,7 +104,7 @@ int main()
 			waitpid(-1, &status, 0);
 		}
 
-		free(programName);
+		free(args);
 		free(executablePath);
 	}
 }
@@ -206,5 +232,34 @@ char *getProgramName(char *command)
 	return result;
 }
 
+int outputRedirection(char ***inputArray, int size, char ***args)
+{
+	char *file;
+	for (int i = 0; i < size; i++)
+	{
+		if (strcmp(*inputArray[i], ">") == 0)
+		{
+			file = *inputArray[i + 1];
+			if (file == NULL)
+			{
+				fprintf(stderr, "Error: invalid command");
+			}
 
+			// modify args to only include part before >
+			*args[i] = NULL;
+			break;
+		}
 
+		if (i == size - 1) // there is no ">"
+		{
+			return EXIT_FAILURE;
+		}
+	}
+
+	int fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+	dup2(fd, 1); // duplicate the file descriptor
+	close(fd);	 // close the unused file descriptor
+
+	// After this point any calls to stdout will write to "file"
+	return EXIT_SUCCESS;
+}
