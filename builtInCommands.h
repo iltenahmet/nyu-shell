@@ -1,4 +1,4 @@
 #pragma once
 
 char* getBuiltInCommand(char* command);
-int executeBuiltInCommand(char **inputArray);
+int executeBuiltInCommand(char **inputArray, int size);

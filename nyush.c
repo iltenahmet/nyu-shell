@@ -18,14 +18,13 @@ int main()
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
 
-	size_t inputSize = 100;
-	char *input = (char *)malloc(inputSize * sizeof(char));
-
-	int inputArraySize = 1; // We dynamically increase array size as we add elements
-	char **inputArray = malloc(inputArraySize * sizeof(char *));
-
 	while (1)
 	{
+		size_t inputSize = 100;
+		char *input = (char *)malloc(inputSize * sizeof(char));
+
+		int inputArraySize = 1; // We dynamically increase array size as we add elements
+		char **inputArray = malloc(inputArraySize * sizeof(char *));
 
 		printPrompt();
 		if (getUserInput(input, inputSize) != EXIT_SUCCESS)
@@ -39,7 +38,7 @@ int main()
 
 		if (builtInCommand)
 		{
-			if (executeBuiltInCommand(inputArray) == EXIT_FAILURE)
+			if (executeBuiltInCommand(inputArray, inputArraySize) == EXIT_FAILURE)
 			{
 				freeArgumentsAndExit(2, input, inputArray);
 			}
