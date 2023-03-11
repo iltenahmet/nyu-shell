@@ -38,6 +38,12 @@ int main()
 
 		char *builtInCommand = getBuiltInCommand(inputArray[0]);
 
+		if (strcmp(inputArray[0],"|") == 0)
+		{
+			fprintf(stderr, "Error: invalid command\n");
+			continue;
+		}
+
 		if (builtInCommand)
 		{
 			if (executeBuiltInCommand(inputArray, inputArraySize) == EXIT_FAILURE)
